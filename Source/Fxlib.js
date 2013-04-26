@@ -460,6 +460,13 @@
         };
 
 
+        /*< internal >*/Listener.prototype.initListener = function initListener( context, useCapture, priority ) {
+            this.context = context;
+            this.useCapture = Boolean( useCapture || false );
+            this.priority   = Fxlib.isInvaildNumber( priority ) ? 0 : priority;
+        };
+
+
         Dispatcher.prototype.addEventListener = function addEventListener( type, listener, useCapture, context, priority ) {
             /// <summary>为事件调度器注册一个指定类型的事件侦听器。</summary>
             /// <param name='type' type='String'>必须，事件侦听器侦听的事件类型。</param>
@@ -468,6 +475,45 @@
             /// <param name='context' type='Object' optional='true'>可选，默认使用当前调度器，设置侦听器事件处理函数的执行上下文。</param>
             /// <param name='priority' type='Number' optional='true'>可选，默认值：0。设置事件侦听器的优先级。</param>
 
+            Fxlib.checkThisPointer( this, Dispatcher );
+
+            if ( (typeof listener === "function") ) {
+                listener = new Listener( listener );
+            };
+
+            if ( !(listener instanceof Listener) ) {
+                throw Error( "传递给 addEventListener() 方法的 listener 参数不是一个 Listener 对象。" );
+            };
+
+            listener.initListener( (context || this), useCapture, priority );
+
+            var type = "" + type;
+
+            if ( !(this.tplist.hasOwnProperty( type )) || (this.tplist[ type ].length <= 0) ) {
+                /// 当没有该类型的事件侦听器时，直接构造数组，并返回。
+                this.tplist[ type ] = [ listener ];
+                return;
+            };
+
+            var listenerCollection = this.tplist[ type ];
+            
+            /// 删除重复的事件侦听器。
+            for ( var i = 0; i < listenerCollection.length; ++i ) {
+                if ( (listenerCollection[ i ].handler === listener.handler) && (listenerCollection[ i ].useCapture === listener.useCapture) ) {
+                    listenerCollection.splice( i, 1 );
+                    break;
+                };
+            };
+
+            /// 按侦听器的优先级排序。
+            for ( var i = 0; i < listenerCollection.length; ++i ) {
+                if ( (listenerCollection[ i ].priority < listener.priority) ) {
+                    listenerCollection.splice( i, 0, listener );
+                    return;
+                };
+            };
+
+            ( listenerCollection[ listenerCollection.length ] = listener );
         };
 
 
@@ -477,6 +523,37 @@
             /// <param name='listener' type='Listener'>必须，要删除的事件侦听器对象或者一个函数对象。</param>
             /// <param name='useCapture' type='Boolean' optional='true'>可选，默认值：false。指示是否是删除捕获阶段的侦听器(true)。</param>
             
+            Fxlib.checkThisPointer( this, Dispatcher );
+
+            var type = "" + type;
+
+            if ( !(this.tplist.hasOwnProperty( type )) || (this.tplist[ type ].length <= 0) ) {
+                return;
+            };
+
+            var listenerCollection = this.tplist[ type ];
+            var handler = null;
+            var capture = Boolean( useCapture || false );
+
+            if ( (listener instanceof Listener) ) {
+                handler = listener.handler;
+            };
+
+            if ( !(typeof handler === "function") ) {
+                throw Error( "传递给 removeEventListener() 方法的 listener 参数不是一个 Listener 对象。" );
+            };
+
+            for ( var i = 0; i < listenerCollection.length; ++i ) {
+                if ( (listenerCollection[ i ].handler === handler) && (listenerCollection[ i ].useCapture === capture) ) {
+                    listenerCollection.splice( i, 1 );
+
+                    if ( (listenerCollection.length <= 0) ) {
+                        delete this.tplist[ type ];
+                    };
+
+                    break;
+                };
+            };
         };
 
 
@@ -485,24 +562,105 @@
             /// <param name='evt' type='String'>必须，要调度的事件对象或者一个指示事件类型的字符串。</param>
             /// <returns type='Boolean'>如果事件传递经过当前调度器，并且当前调度器执行了默认的行为，则返回 true。否则返回 false。</returns>
 
+            Fxlib.checkThisPointer( this, Dispatcher );
+
+            if ( (Fxlib.isString( evt )) ) {
+                evt = new Event( evt, false, false );
+            };
+
+            if ( !(evt instanceof Event) ) {
+                throw Error( "传递给 dispatchEvent() 方法的 evt 参数不是一个 Event 对象。" );
+            };
+
+            var streamPropagation = this.builtPropagation();
+            var thisIndexPointer  = streamPropagation.length >> 1;
+            
+            /// 调度“捕获阶段”:
+            ( evt.eventPhase    = 1 );
+            ( evt.currentTarget = this.target );
+            for ( var i = 0; (i < thisIndexPointer) && (evt.isPropagation()); ++i ) {
+                streamPropagation[ i ].dispatchEventFunction( evt );
+            };
+
+            if ( !(evt.isPropagation()) ) {
+                return false;
+            };
+
+            /// 调度“目标阶段”:
+            ( evt.eventPhase    = 2 );
+            ( evt.currentTarget = this.target );
+            ( this.dispatchEventFunction(evt) );
+
+            if ( !(evt.isPropagation()) ) {
+                return ( !(evt.defaultPrevented()) );
+            };
+
+            /// 调度“冒泡阶段”:
+            ( evt.eventPhase    = 3 );
+            ( evt.currentTarget = this.target );
+            for ( ++i; (i < streamPropagation.length) && (evt.isPropagation()); ++i ) {
+                streamPropagation[ i ].dispatchEventFunction( evt );
+            };
+
+            return ( !(evt.defaultPrevented()) );
         };
 
 
         Dispatcher.prototype.hasEventListener = function hasEventListener( type ) {
             /// <summary>查看当前调度器的事件侦听器列表中是否为指定类型的事件，注册了事件侦听器。</summary>
             /// <returns type='Boolean'>如果存在处理该类型事件的事件侦听器，则返回 true。否则返回 false。</returns>
+
+            Fxlib.checkThisPointer( this, Dispatcher );
+
+            var type = "" + type;
+
+            return ( (this.tplist.hasOwnProperty( type )) && (this.tplist[ type ].length > 0) );
         };
 
 
         Dispatcher.prototype.willTrigger = function willTrigger( type ) {
             /// <summary>查看当前调度器以及事件流中任何始主调度器的事件侦听器列表中是否为指定类型的事件，注册了事件侦听器。</summary>
             /// <returns type='Boolean'>如果存在处理该类型事件的事件侦听器，则返回 true。否则返回 false。</returns>
+
+            Fxlib.checkThisPointer( this, Dispatcher );
+
+            var streamPropagation = this.builtPropagation();
+            var dispatcher;
+            var type = "" + type;
+
+            for ( var i = 0; i < streamPropagation.length; ++i ) {
+                dispatcher = streamPropagation[ i ];
+
+                if ( (dispatcher.tplist.hasOwnProperty( type )) && (dispatcher.tplist[ type ].length > 0) ) {
+                    return true;
+                };
+            };
+
+            return false;
         };
 
 
         /*< protected >*/Dispatcher.prototype.dispatchEventFunction = function dispatchEventFunction( evt ) {
             /// <summary>为指定事件对象，调用调度器列表中的事件侦听器。并为该事件调用默认行为处理函数。</summary>
-            /// <param name='evt' type='String'>必须，要调度的事件对象。</param>
+            /// <param name='evt' type='Event'>必须，要调度的事件对象。</param>
+
+            if ( !(this.tplist.hasOwnProperty( evt.type )) ) {
+                return;
+            };
+
+            if ( (evt.eventPhase < 0) || (evt.eventPhase > 3) ) {
+                /// 事件对象的 eventPhase 值无效。
+                return;
+            };
+
+            var listenerCollection = this.tplist[ evt.type ];
+            var target = evt.target = this.target;
+
+            for ( var i = 0; (i < listenerCollection.length) && (evt.isImmediate()); ++i ) {
+                listenerCollection[ i ].handleEvent( evt );
+            };
+
+            ( !(evt.defaultPrevented()) && (this.handleDefaultBehavior( evt )) );
         };
 
 

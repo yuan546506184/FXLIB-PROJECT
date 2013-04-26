@@ -6,6 +6,26 @@
     <title>Fxlib: Alpha-3.2.181: Index Page</title>
     <script type="text/javascript" charset="utf-8" src="./Source/Fxlib.js"></script>
     <!--<script type="text/javascript" charset="utf-8" src="./Source/Debug.js"></script>-->
+    <script type="text/javascript" charset="utf-8">
+        document.addEventListener( "readystatechange", function( evt ) {
+            var sub = document.getElementById( "sub" );
+            var dispatcher = new Fxlib.events.Dispatcher( sub );
+
+            dispatcher.addEventListener( "sometype", function( evt ) {
+                console.log( "type: ", evt.type );
+                console.log( "bubbles: ", evt.bubbles );
+                console.log( "cancelable: ", evt.cancelable );
+                console.log( "target: ", evt.target );
+                console.log( "currentTarget: ", evt.currentTarget );
+                console.log( "eventPhase: ", evt.eventPhase );
+            });
+
+
+            sub.addEventListener( "click", function( evt ) {
+                dispatcher.dispatchEvent( "sometype" );
+            });
+        });
+    </script>
 </head>
 <body>
     <div id="sub" style="width: 100px; height: 100px; background: #ccc"></div>
