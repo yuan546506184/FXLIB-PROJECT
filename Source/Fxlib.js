@@ -20,7 +20,7 @@
     var Version  = "Alpha-3.2.181";
 
     /// <var type='String'>定义框架的 Github 页面地址。</var>
-    var GitPage  = "https://github.com/yuan546506184/Fxlib";
+    var GitPage  = "https://github.com/yuan546506184/FXLIB-PROJECT";
 
     /// <var type='String'>定义框架的官网地址。</var>
     var HomePage = "http://projects.fxlib.org/javascript/";
