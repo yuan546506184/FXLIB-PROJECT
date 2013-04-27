@@ -305,11 +305,34 @@
         }, Object );
 
 
+        Fxlib.ClassObject.prototype.toString = function toString () {
+            /// <summary>获取对象的字符串形式。</summary>
+            /// <returns type='String'>返回一个 String 对象。</returns>
+
+            try {
+
+                var o = Fxlib.foundPrototype( this ).constructor;
+                var n = Fxlib.foundClassName( o ) || "Anons";
+                return ( "[object " + n + "]" );
+
+            } catch( exception ){};
+
+            return ToString.call( this );
+        };
+
+
     /// [ "Events" ]:
     /// ###########################################################################
         var Event;
         var Listener;
         var Dispatcher;
+        /*< template >*/var MouseEvent;
+        /*< template >*/var FocusEvent;
+        /*< template >*/var KeyboardEvent;
+        /*< template >*/var TouchEvent;
+
+        var HTMLEvent;
+        var HTMLDispatcher;
 
 
         Fxlib.namespace( "events", {
@@ -373,7 +396,109 @@
                     throw Error( "传递给 Dispatcher 构造函数的 target 参数必须为引用类型。" );
                 };
 
-            }, Fxlib.ClassObject )
+            }, Fxlib.ClassObject ),
+
+
+            MouseEvent:
+            MouseEvent = Fxlib.linkPrototype( function MouseEvent( type, bubbles, cancelable ) {
+                /// <summary>创建一个鼠标事件对象。</summary>
+                /// <param name='type' type='String'>必须，事件对象的类型。</param>
+                /// <param name='bubbles' type='Boolean' optional='true'>可选，默认值：false。指示事件是否是一个冒泡事件。</param>
+                /// <param name='cancelable' type='Boolean' optional='true'>可选，默认值：false。指示事件是否可阻止对象执行默认行为。</param>
+
+                Fxlib.checkThisPointer( this, MouseEvent );
+                Event.call( this, type, bubbles, cancelable );
+
+            }, Event ),
+
+
+            FocusEvent:
+            FocusEvent = Fxlib.linkPrototype( function FocusEvent( type, bubbles, cancelable ) {
+                /// <summary>创建一个焦点事件对象。</summary>
+                /// <param name='type' type='String'>必须，事件对象的类型。</param>
+                /// <param name='bubbles' type='Boolean' optional='true'>可选，默认值：false。指示事件是否是一个冒泡事件。</param>
+                /// <param name='cancelable' type='Boolean' optional='true'>可选，默认值：false。指示事件是否可阻止对象执行默认行为。</param>
+
+                Fxlib.checkThisPointer( this, FocusEvent );
+                Event.call( this, type, bubbles, cancelable );
+
+            }, Event ),
+
+
+            KeyboardEvent:
+            KeyboardEvent = Fxlib.linkPrototype( function KeyboardEvent( type, bubbles, cancelable ) {
+                /// <summary>创建一个键盘事件对象。</summary>
+                /// <param name='type' type='String'>必须，事件对象的类型。</param>
+                /// <param name='bubbles' type='Boolean' optional='true'>可选，默认值：false。指示事件是否是一个冒泡事件。</param>
+                /// <param name='cancelable' type='Boolean' optional='true'>可选，默认值：false。指示事件是否可阻止对象执行默认行为。</param>
+
+                Fxlib.checkThisPointer( this, KeyboardEvent );
+                Event.call( this, type, bubbles, cancelable );
+
+            }, Event ),
+
+
+            TouchEvent:
+            TouchEvent = Fxlib.linkPrototype( function TouchEvent( type, bubbles, cancelable ) {
+                /// <summary>创建一个触屏事件对象。</summary>
+                /// <param name='type' type='String'>必须，事件对象的类型。</param>
+                /// <param name='bubbles' type='Boolean' optional='true'>可选，默认值：false。指示事件是否是一个冒泡事件。</param>
+                /// <param name='cancelable' type='Boolean' optional='true'>可选，默认值：false。指示事件是否可阻止对象执行默认行为。</param>
+
+                Fxlib.checkThisPointer( this, TouchEvent );
+                Event.call( this, type, bubbles, cancelable );
+
+            }, Event ),
+
+
+            HTMLDispatcher:
+            HTMLDispatcher = Fxlib.linkPrototype( function HTMLDispatcher( target ) {
+                /// <summary>创建一个 HTML 事件调度器。</summary>
+                /// <param name='target' type='HTMLElement'>必须， 绑定的 DOM 元素。</param>
+
+                if ( (Fxlib.isInvaildObject( target )) ) {
+                    throw Error( "传递给 HTMLDispatcher 构造函数的 target 参数不能为空。" );
+                };
+
+                Fxlib.checkThisPointer( this, HTMLDispatcher );
+                Dispatcher.call( this, target );
+                
+                this.tpbind = {};
+                this.handleHtmlEvent = Fxlib.builtProxy( this.handleHtmlEvent, this );
+
+            }, Dispatcher ),
+
+
+            HTMLEvent:
+            HTMLEvent = Fxlib.linkPrototype( function HTMLEvent( domEvent ) {
+                /// <summary>创建一个 HTML 事件代理对象。</summary>
+                /// <param name='domEvent' type='Event'>必须， 代理的 HTML 事件对象。</param>
+
+                if ( !(Fxlib.isReferenceObject( domEvent )) ) {
+                    throw Error( "传递给 HTMLEvent 构造函数的 domEvent 参数必须为引用类型。" );
+                };
+
+                Fxlib.checkThisPointer( this, HTMLEvent );
+                Event.call( this, domEvent.type, domEvent.bubbles, domEvent.cancelable );
+
+                this.domEvent = domEvent;
+                /*< default >*/this.eventPhase = 2;
+                /*< default >*/this.bubbles    = false;
+                /*< default >*/this.cancelable = true;
+
+                if ( (Fxlib.isNumber( this.domEvent.eventPhase )) ) {
+                    this.eventPhase = this.domEvent.eventPhase;
+                };
+
+                if ( (Fxlib.isBoolean( this.domEvent.bubbles )) ) {
+                    this.bubbles = this.domEvent.bubbles;
+                };
+
+                if ( (Fxlib.isBoolean( this.domEvent.cancelable )) ) {
+                    this.cancelable = this.domEvent.cancelable;
+                };
+
+            }, Event )
 
         });
 
@@ -431,10 +556,22 @@
 
 
         Event.prototype.toString = function toString () {
-            /// <summary>获取对象的字符串格式。</summary>
-            /// <returns type='Stirng'>返回一个 String 值。</returns>
+            /// <summary>获取事件对象的字符串信息。</summary>
+            /// <returns type='String'>返回一个 String 对象。</returns>
 
-            return ( "[object Event]" );
+            try {
+                
+                var o = Fxlib.foundPrototype( this ).constructor;
+                var n = Fxlib.foundClassName( o ) || "Event";
+
+                return ( "[" + n + " type=\"" + this.type + 
+                    "\", bubbles=\""    + this.bubbles + 
+                    "\", cancelable=\"" + this.cancelable + 
+                    "\", eventPhase=\"" + this.eventPhase + "\"]" );
+
+            } catch( exception ) {};
+
+            return ToString.call( this );
         };
 
 
@@ -445,6 +582,47 @@
 
         /*< internal >*/Event.prototype.isImmediate = function isImmediate() {
             return !this._isStoppedImmediate;
+        };
+
+
+        HTMLEvent.prototype.stopPropagation = function stopPropagation () {
+            /// <summary>停止事件传递，使得事件流中的下一个节点不再处理该事件对象。</summary>
+
+            Event.prototype.stopPropagation.call( this );
+
+            if ( (Fxlib.isImpWithJsEngine( this.domEvent.stopPropagation )) ) {
+                this.domEvent.stopPropagation();
+            };
+
+            if ( (Fxlib.isBoolean( this.domEvent.cancelBubble )) ) {
+                this.domEvent.cancelBubble = true;
+            };
+        };
+
+
+        HTMLEvent.prototype.stopImmediatePropagation = function stopImmediatePropagation () {
+            /// <summary>立刻停止事件传递，使得事件流中的下一个节点以及当前节点的后续侦听器都不再处理该事件。</summary>
+
+            Event.prototype.stopImmediatePropagation.call( this );
+
+            if ( (Fxlib.isImpWithJsEngine( this.domEvent.stopImmediatePropagation )) ) {
+                this.domEvent.stopImmediatePropagation();
+            };
+
+            if ( (Fxlib.isBoolean( this.domEvent.cancelBubble )) ) {
+                this.domEvent.cancelBubble = true;
+            };
+        };
+
+
+        HTMLEvent.prototype.preventDefault = function preventDefault () {
+            /// <summary>阻止事件调度对象处理默认行为。</summary>
+
+            Event.prototype.preventDefault.call( this );
+
+            if ( (Fxlib.isImpWithJsEngine( this.domEvent.preventDefault )) ) {
+                this.domEvent.preventDefault();
+            };
         };
 
 
@@ -675,6 +853,221 @@
             /// <returns type='Array' elementType='Dispatcher'>返回一个事件调度器列表。</returns>
 
             return ( [ this ] );
+        };
+
+
+        HTMLDispatcher.prototype.addEventListener = function( type, listener, useCapture, context, priority ) {
+            /// <summary>为事件调度器注册一个指定类型的事件侦听器。</summary>
+            /// <param name='type' type='String'>必须，事件侦听器侦听的事件类型。</param>
+            /// <param name='listener' type='Listener'>必须，事件侦听器对象或者函数对象。</param>
+            /// <param name='useCapture' type='Boolean' optional='true'>可选，默认值：false。指示是否是为捕获阶段的事件注册的侦听器。</param>
+            /// <param name='context' type='Object' optional='true'>可选，默认使用当前调度器，设置侦听器事件处理函数的执行上下文。</param>
+            /// <param name='priority' type='Number' optional='true'>可选，默认值：0。设置事件侦听器的优先级。</param>
+
+            Dispatcher.prototype.addEventListener.call( this, type, listener, useCapture, context, priority );
+
+            if ( (Fxlib.isImpWithJsEngine( this.target.addEventListener )) ) {
+                this.target.addEventListener( "" + type, this.handleHtmlEvent, Boolean( useCapture || false ) );
+                return;
+            };
+
+            if ( (Boolean( useCapture || false ) === true) ) {
+                try {
+                    console.warn( "HTMLDispatcher: 客户端不支持使用 useCapture 参数，该事件侦听器将被忽略。" );
+                } catch( exception ) {};
+
+                return;
+            };
+
+            if ( (Fxlib.isImpWithJsEngine( this.target.attachEvent )) ) {
+                /// detachEvent 方法不会删除重复的事件侦听器。
+                this.target.detachEvent( "on" + type, this.handleHtmlEvent );
+                this.target.attachEvent( "on" + type, this.handleHtmlEvent );
+                return;
+            };
+
+            var type = "on" + type;
+
+            if ( !(this.handleHtmlEvent === this.target[ type ]) ) {
+                this.tpbind[ type ] = this.target[ type ];
+                this.target[ type ] = this.handleHtmlEvent;
+            };
+        };
+
+
+        HTMLDispatcher.prototype.removeEventListener = function( type, listener, useCapture ) {
+            /// <summary>删除事件调度器事件侦听器列表中指定类型的事件侦听器。</summary>
+            /// <param name='type' type='String'>必须，要删除侦听器的侦听的事件类型。</param>
+            /// <param name='listener' type='Listener'>必须，要删除的事件侦听器对象或者一个函数对象。</param>
+            /// <param name='useCapture' type='Boolean' optional='true'>可选，默认值：false。指示是否是删除捕获阶段的侦听器(true)。</param>
+
+            Dispatcher.prototype.removeEventListener.call( this, type, listener, useCapture );
+
+            if ( (this.hasEventListener( "" + type )) ) {
+                /// 存在任何可能的事件侦听器。
+                return;
+            };
+
+            if ( (Fxlib.isImpWithJsEngine( this.target.removeEventListener )) ) {
+                this.target.removeEventListener( "" + type, this.handleHtmlEvent, true );
+                this.target.removeEventListener( "" + type, this.handleHtmlEvent, false );
+                return;
+            };
+
+            if ( (Fxlib.isImpWithJsEngine( this.target.detachEvent )) ) {
+                this.target.detachEvent( "on" + type );
+                return;
+            };
+
+            var type = "on" + type;
+
+            if ( (this.handleHtmlEvent === this.target[ type ]) ) {
+                try {
+                    this.target[ type ] = ( this.tpbind[ type ] || null );
+                } catch( exception ) {};
+
+                delete this.tpbind[ type ];
+            };
+        };
+
+
+        /*< protected >*/HTMLDispatcher.prototype.handleHtmlEvent = function( evt ) {
+            /// <summary>HTML 事件侦听器函数， 负责接收 HTML 对象事件调度并将事件广播给注册的侦听器。</summary>
+            /// <param name='evt' type='Event'>必须，要广播的 HTML 事件对象。</param>
+            /// <returns type='Boolean'>如果事件取消默认行为，则返回 false，否则返回 true。</returns>
+
+            var fromEvent = ( evt || window.event );
+            var htmlEvent = new HTMLEvent( fromEvent );
+
+            /// 处理绑定事件：
+            if ( (typeof this.tpbind[ htmlEvent.type ] === "function") ) {
+                try {
+                /// 防止函数抛出错误，而中断事件流。
+                    this.tpbind[ htmlEvent.type ].call( this.target, evt );
+                } catch( exception ) {};
+            };
+
+            this.dispatchEventFunction( htmlEvent );
+            return ( fromEvent.returnValue = !htmlEvent.defaultPrevented() );
+        };
+
+
+        Event.NONE            = 0;
+        Event.CAPTURING_PHASE = 1;
+        Event.AT_TARGET       = 2;
+        Event.BUBBLING_PHASE  = 3;
+
+        FocusEvent.BLUR          = "blur";
+        FocusEvent.DOM_FOCUS_IN  = "DOMFocusIn";
+        FocusEvent.DOM_FOCUS_OUT = "DOMFocusOut";
+        FocusEvent.FOCUS         = "focus";
+        FocusEvent.FOCUS_IN      = "focusin";
+        FocusEvent.FOCUS_OUT     = "focusout";
+
+        MouseEvent.CLICK         = "click";
+        MouseEvent.DBL_CLICK     = "dblclick";
+        MouseEvent.MOUSE_DOWN    = "mousedown";
+        MouseEvent.MOUSE_ENTER   = "mouseenter";
+        MouseEvent.MOUSE_LEAVE   = "mouseleave";
+        MouseEvent.MOUSE_MOVE    = "mousemove";
+        MouseEvent.MOUSE_OUT     = "mouseout";
+        MouseEvent.MOUSE_OVER    = "mouseover";
+        MouseEvent.MOUSE_UP      = "mouseup";
+        MouseEvent.MOUSE_WHEEL   = "mousewheel";
+
+        KeyboardEvent.KEY_DOWN   = "keydown";
+        KeyboardEvent.KEY_PRESS  = "keypress";
+        KeyboardEvent.KEY_UP     = "keyup";
+
+        TouchEvent.TOUCH_START   = "touchstart";
+        TouchEvent.TOUCH_END     = "touchend";
+        TouchEvent.TOUCH_MOVE    = "touchmove";
+        TouchEvent.TOUCH_ENTER   = "touchenter";
+        TouchEvent.TOUCH_LEAVE   = "touchlevae";
+        TouchEvent.TOUCH_CANCEL  = "touchcancel";
+        TouchEvent.MS_POINTER_CANCEL  = "mspointercancel";
+        TouchEvent.MS_POINTER_DOWN    = "mspointerdown";
+        TouchEvent.MS_POINTER_HOVER   = "mspointerhover";
+        TouchEvent.MS_POINTER_MOVE    = "mspointermove";
+        TouchEvent.MS_POINTER_OUT     = "mspointerout";
+        TouchEvent.MS_POINTER_OVER    = "mspointerover";
+        TouchEvent.MS_POINTER_UP      = "mspointerup";
+        TouchEvent.INTERFACE          = {};
+
+        Event.ABORT              = "abort";
+        Event.ACTIVATE           = "activate";
+        Event.AFTER_PRINT        = "afterprint";
+        Event.AFTER_UPDATE       = "afterupdate";
+        Event.BEFORE_ACTIVATE    = "beforeactivate";
+        Event.BEFORE_COPY        = "beforecopy";
+        Event.BEFORE_CUT         = "beforecut";
+        Event.BEFORE_DEACTIVATE  = "beforedeactivate";
+        Event.BEFORE_EDIT_FOCUS  = "beforeeditfocus";
+        Event.BEFORE_PASTE       = "beforepaste";
+        Event.BEFORE_PRINT       = "beforeprint";
+        Event.BEFORE_UNLOAD      = "beforeunload";
+        Event.BOUNCE             = "bounce";
+        Event.CELL_CHANGE        = "cellchange";
+        Event.CHANGE             = "change";
+        Event.COMPLETE           = "complete";
+        Event.CONTEXT_MENU       = "contextmenu";
+        Event.CONTROL_SELECT     = "controlselect";
+        Event.COPY               = "copy";
+        Event.CUT                = "cut";
+        Event.DATA_AVAILABLE     = "dataavailable";
+        Event.DATA_SET_CHANGED   = "datasetchanged";
+        Event.DATA_SET_COMPLETE  = "datasetcomplete";
+        Event.DEACTIVATE         = "deactivate";
+        Event.DRAG               = "drag";
+        Event.DRAG_END           = "dragend";
+        Event.DRAG_ENTER         = "dragenter";
+        Event.DRAG_LEAVE         = "dragleave";
+        Event.DRAG_OVER          = "dragover";
+        Event.DRAG_START         = "dragstart";
+        Event.DROP               = "drop";
+        Event.ERROR              = "error";
+        Event.ERROR_UPDATE       = "errorupdate";
+        Event.FILTER_CHANGE      = "filterchange";
+        Event.FINISH             = "finish";
+        Event.HASH_CHANGE        = "hashchange";
+        Event.HELP               = "help";
+        Event.INPUT              = "input";
+        Event.INTER_ACTIVE       = "interactive";
+        Event.LAYOUT_COMPLETE    = "layoutcomplete";
+        Event.LOAD               = "load";
+        Event.LOSE_CAPTURE       = "losecapture";
+        Event.MESSAGE            = "message";
+        Event.MOVE               = "move";
+        Event.MOVE_END           = "moveend";
+        Event.MOVE_START         = "movestart";
+        Event.OFF_LINE           = "offline";
+        Event.ON_LINE            = "online";
+        Event.PAGE               = "page";
+        Event.PASTE              = "paste";
+        Event.POP_STATE          = "popstate";
+        Event.PROPERTY_CHANGE    = "propertychange";
+        Event.READY_STATE_CHANGE = "readystatechange";
+        Event.RESET              = "reset";
+        Event.RESIZE             = "resize";
+        Event.RESIZE_END         = "resizeend";
+        Event.RESIZE_START       = "resizestart";
+        Event.ROW_ENTER          = "rowenter";
+        Event.ROW_EXIT           = "rowexit";
+        Event.ROWS_DELETE        = "rowsdelete";
+        Event.ROWS_INSERTED      = "rowsinserted";
+        Event.SCROLL             = "scroll";
+        Event.SELECT             = "select";
+        Event.SELECTION_CHANGE   = "selectionchange";
+        Event.SELECT_START       = "selectstart";
+        Event.START              = "start";
+        Event.STOP               = "stop";
+        Event.STORAGE            = "storage";
+        Event.STORAGE_COMMIT     = "storagecommit";
+        Event.SUBMIT             = "submit";
+        Event.UNLOAD             = "unload";
+        Event.INTERFACE = {
+            /// <summary>定义 DOM 准备完成事件常量。</summary>
+            LOADED: ( (Fxlib.isImpWithJsEngine( window.addEventListener )) ? "DOMContentLoaded" : "readystatechange" )
         };
 
   
