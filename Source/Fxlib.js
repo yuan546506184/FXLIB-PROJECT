@@ -305,7 +305,7 @@
 
     /// [ "Core" ]:
     /// ###########################################################################
-        var ClsasObject;
+        var ClassObject;
         
         Fxlib.namespace( "core", {
             ClassObject:
@@ -387,8 +387,8 @@
                     throw Error( "传递给 Listener 构造函数的 handler 参数不是一个 Function 对象。" );
                 };
 
-                this.handler = handler;
-                this.context = context;
+                this.handler    = handler;
+                this.context    = context;
                 this.useCapture = Boolean( useCapture || false );
                 this.priority   = Fxlib.isInvaildNumber( priority ) ? 0 : priority;
 
@@ -655,7 +655,7 @@
 
 
         /*< internal >*/Listener.prototype.initListener = function initListener( context, useCapture, priority ) {
-            this.context = context;
+            this.context    = context;
             this.useCapture = Boolean( useCapture || false );
             this.priority   = Fxlib.isInvaildNumber( priority ) ? 0 : priority;
         };
@@ -880,6 +880,7 @@
             /// <param name='context' type='Object' optional='true'>可选，默认使用当前调度器，设置侦听器事件处理函数的执行上下文。</param>
             /// <param name='priority' type='Number' optional='true'>可选，默认值：0。设置事件侦听器的优先级。</param>
 
+            Fxlib.forkInspectPointer( this, HTMLDispatcher );
             Dispatcher.prototype.addEventListener.call( this, type, listener, useCapture, context, priority );
 
             if ( (Fxlib.isImpWithJsEngine( this.target.addEventListener )) ) {
@@ -917,6 +918,7 @@
             /// <param name='listener' type='Listener'>必须，要删除的事件侦听器对象或者一个函数对象。</param>
             /// <param name='useCapture' type='Boolean' optional='true'>可选，默认值：false。指示是否是删除捕获阶段的侦听器(true)。</param>
 
+            Fxlib.forkInspectPointer( this, HTMLDispatcher );
             Dispatcher.prototype.removeEventListener.call( this, type, listener, useCapture );
 
             if ( (this.hasEventListener( "" + type )) ) {
@@ -1091,7 +1093,7 @@
     /// ###########################################################################
         var ByteArray;
         var Color;
-
+        var URI;
 
         Fxlib.namespace( "utils", {
             /*< reference >*/foundClassName: Fxlib.foundClassName,
@@ -1185,6 +1187,18 @@
             },
 
 
+            timeNow: Fxlib.isImpWithJsEngine( Date.now ) ? Date.now : function timeNow () {
+                /// <value type='Number'>获取当前系统的时间戳。</value>
+
+                return ( (new Date).getTime() );
+            },
+
+
+            embedFlashObject: function embedFlashObject () {
+                /// <summary>嵌入一个 Flash 对象。</summary>
+            },
+
+
             ByteArray:
             ByteArray = Fxlib.linkPrototype( function ByteArray( length ) {
                 /// <signature>
@@ -1199,6 +1213,9 @@
                 /// <summary>使用 ArrayBuffer 对象创建一个二进制数组。(引用原始数组)。</summary>
                 /// <param name='buffer' type='ArrayBuffer'>必须，保存字节数据的 ArrayBuffer 对象。</param>
                 /// </signature>
+
+                Fxlib.forkInspectPointer( this, ByteArray );
+                ClassObject.call( this );
 
                 /*< default >*/this.byteLength   = 0;
                 /*< default >*/this.bytePosition = 0;
@@ -1239,13 +1256,15 @@
 
                 throw Error( "传递给 ByteArray 构造函数的 length 参数无效。" );
 
-            }, ClsasObject ),
+            }, ClassObject ),
 
 
             Color:
             Color = Fxlib.linkPrototype( function Color( R, G, B, A ) {
                 /// <summary>创建一个颜色对象。</summary>
 
+                Fxlib.forkInspectPointer( this, Color );
+                ClassObject.call( this );
 
             }, ClassObject ),
 
@@ -1254,17 +1273,26 @@
             URI = Fxlib.linkPrototype( function URI( path ) {
                 /// <summary>创建一个 URI 对象。</summary>
 
+                Fxlib.forkInspectPointer( this, URI );
+                ClassObject.call( this );
+
             }, ClassObject )
 
         });
 
-        /// ByteArray 对象的方法都不提供范围以及指针检查。
-        /// 支持 ArrayBuffer 对象：
-        if ( !(typeof ArrayBuffer === "undefined") ) {
+
+        /// 不支持 ArrayBuffer 对象：
+        if ( (typeof ArrayBuffer === "undefined") ) {
 
             ByteArray.prototype.getUint8 = function getUint8 () {
                 /// <summary>从字节数组的当前位置读取一个 8 位无符号整数。</summary>
                 /// <returns tyep='Number'>返回一个数值。</returns>
+
+                Fxlib.forkInspectPointer( this, ByteArray );
+
+                if ( !(this.byteAvailable()) ) {
+                    throw Error( "可用字节不足。" );
+                };
 
                 return ( this.byteProvider[ this.bytePosition ] || 0 );
             };
@@ -1274,7 +1302,13 @@
                 /// <summary>从字节数组的当前位置写入一个 8 位无符号整数。</summary>
                 /// <param name='value' type='Number'>必须，写入的数值。</param>
 
-                this.byteProvider[ this.bytePosition ] = value;
+                Fxlib.forkInspectPointer( this, ByteArray );
+
+                if ( !(this.byteAvailable()) ) {
+                    throw Error( "可用字节不足。" );
+                };
+
+                this.byteProvider[ this.bytePosition ] = value & 255;
             };
 
         }
@@ -1285,6 +1319,8 @@
                 /// <summary>从字节数组的当前位置读取一个 8 位无符号整数。</summary>
                 /// <returns tyep='Number'>返回一个数值。</returns>
 
+                Fxlib.forkInspectPointer( this, ByteArray );
+
                 return this.byteOperater.getUint8( this.bytePosition );
             };
 
@@ -1292,6 +1328,8 @@
             ByteArray.prototype.setUint8 = function setUint8( value ) {
                 /// <summary>从字节数组的当前位置写入一个 8 位无符号整数。</summary>
                 /// <param name='value' type='Number'>必须，写入的数值。</param>
+
+                Fxlib.forkInspectPointer( this, ByteArray );
 
                 this.byteOperater.setUint8( value, this.bytePosition );
             };
@@ -1304,6 +1342,91 @@
 
             return Math.max( 0, this.byteLength - this.bytePosition );
         };
+
+
+    // [ "Service" ]:
+    /// ###########################################################################
+        Fxlib.namespace( "service", {
+            Axtypes: [ "Msxml2.XMLHttp.5.0", "Msxml2.XMLHttp.4.0", "Msxml2.XMLHttp.3.0", "Msxml2.XMLHttp", "Microsoft.XMLHttp" ],
+
+
+            createXmlHttpRequest: function createXmlHttpRequest () {
+                /// <summary>创建 XMLHttpRequest 对象。</summary>
+                /// <returns type='XMLHttpRequest'>返回 XMLHttpRequest 或 Msxml.XMLHttp 或 null。</returns>
+
+                /// IE 本地环境使用 Msxml.XMLHttp 对象。
+                if ( (location.protocol.indexOf("file") === 0) && (Fxlib.utils.foundBrowser("msie")) ) {
+                    return Fxlib.service.createHttpActiveXObject();
+                };
+
+                return ( (typeof XMLHttpRequest === "undefined") ? Fxlib.service.createHttpActiveXObject() : new XMLHttpRequest() );
+            },
+
+
+            createHttpActiveXObject: function createHttpActiveXObject () {
+                /// <summary>[仅 IE]: 创建 Msxml.XMLHttp 对象。</summary>
+                /// <returns type='XMLHttpRequest'>返回 Msxml.XMLHttp 或 null。</returns> 
+
+                if ( !(typeof ActiveXObject === "undefined") ) {
+                    var Axtypes = Fxlib.service.Axtypes;
+
+                    for ( var i = 0; i < Axtypes.length; ++i ) {
+                        try {
+                            return new ActiveXObject( Axtypes[ i ] );
+                        } catch( exception ){};
+                    };
+                };
+
+                return null;
+            },
+
+
+            timeNow: function timeNow( url, username, password ) {
+                /// <summary>获取服务端时间戳。(同步方式)。</summary>
+                /// <param name='url' type='String' optional='true'>可选，默认值：当前页面地址。服务端 URL 路径。</param>
+                /// <param name='username' type='String' optional='true'>可选，默认值：无。验证用户名。</param>
+                /// <param name='password' type='String' optional='true'>可选，默认值：无。验证密码。</param>
+                /// <returns type='Number'>如果无法获取则返回 null。</returns>
+
+                var http = Fxlib.service.createXmlHttpRequest();
+
+                if ( (Fxlib.isInvaildObject( http )) ) {
+                    return null;
+                };
+
+                try {
+                    if ( (Fxlib.isString( username )) && (Fxlib.isString( password )) ) {
+                        http.open( "HEAD", (url || location.href), false, ("" + username), ("" + password) );
+                        http.send( null );
+                    }
+
+                    else {
+                        http.open( "HEAD", (url || location.href), false );
+                        http.send( null );
+                    };
+
+                    var dateHeader = http.getResponseHeader( "Date" );
+                    
+                    if ( (Fxlib.isInvaildObject( dateHeader )) ) {
+                        return null;
+                    };
+
+                    var timeNow = Date.parse( dateHeader );
+
+                    return ( (Fxlib.isInvaildNumber( timeNow )) ? null : timeNow );
+                } catch( exception ){};
+
+                return null;
+            }
+
+        });
+
+
+    // [ "Motion" ]:
+    /// ###########################################################################
+        Fxlib.namespace( "motion", {
+
+        });
 
 
   
