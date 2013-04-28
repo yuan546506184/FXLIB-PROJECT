@@ -1225,7 +1225,7 @@
                     d : ( (date.getHours  () < 10) ? ("0" + date.getHours  ()) : ("" + date.getHours  ()) ),
                     e : ( (date.getMinutes() < 10) ? ("0" + date.getMinutes()) : ("" + date.getMinutes()) ),
                     f : ( (date.getSeconds() < 10) ? ("0" + date.getSeconds()) : ("" + date.getSeconds()) ),
-                    g : ( (date.getMilliseconds() < 10) ? ("00" + date.getMilliseconds()) : (date.getMilliseconds() < 100) ? ("0" + date.getMilliseconds()) : ("" + date.getMilliseconds()) ),
+                    g : ( (date.getMilliseconds() < 10) ? ("00" + date.getMilliseconds()) : (date.getMilliseconds() < 100) ? ("0" + date.getMilliseconds()) : ("" + date.getMilliseconds()) )
                 };
                 
                 return Fxlib.utils.foundParameter( R_date_iso_string, format );
