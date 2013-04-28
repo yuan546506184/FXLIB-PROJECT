@@ -51,6 +51,12 @@
 
     /// <var type='String'>定义匹配浏览器版本信息的正则表达式的模式字符串。</var>
     var R_browser_version = "(vendor)(?:\\s|/)+(\\w+(?:\\.\\w+)*)";
+
+    /// <var type='String'>定义 ISO 时间格式的字符串模式。</var>
+    var R_date_iso_string = "$(a)-$(b)-$(c)T$(d):$(e):$(f).$(g)Z";
+
+    /// <var type='String'>定义删除字符串，前缀空白，以及后缀空白的正则表达式。</var>
+    var R_string_trim = /^[\s\xA0\uFEFF]+|[\s\xA0\uFEFF]+$/g;
         
 
     /// [ "Static" ]:
@@ -280,6 +286,10 @@
                 throw Error( "传递给 builtProxy() 方法的 context 参数必须为引用类型。" );
             };
 
+            if ( (Fxlib.isImpWithJsEngine( handler.bind )) ) {
+                return handler.bind.apply( handler, Slice.call(arguments, 1) );
+            };
+
             /// 没有提供默认参数时，不需要提取 arguments 中的值，而消耗性能。
             if ( (arguments.length === 2) ) {
                 return function () { return handler.apply( context, arguments ); };
@@ -320,7 +330,7 @@
 
         ClassObject.prototype.toString = function toString () {
             /// <summary>获取对象的字符串形式。</summary>
-            /// <returns type='String'>返回一个 String 对象。</returns>
+            /// <returns type='String'>返回一个 String 值。</returns>
 
             try {
 
@@ -570,7 +580,7 @@
 
         Event.prototype.toString = function toString () {
             /// <summary>获取事件对象的字符串信息。</summary>
-            /// <returns type='String'>返回一个 String 对象。</returns>
+            /// <returns type='String'>返回一个 String 值。</returns>
 
             try {
                 
@@ -1123,7 +1133,7 @@
                 };
 
                 return string.replace( R_string_parameter, function( token, name ) {
-                    return ( (name in parameter) ? (typeof handler === "function") ? handler(parameter[ name ]) : ("" + parameter[ name ]) : token );
+                    return ( (name in parameter) ? (typeof handler === "function") ? handler(parameter[ name ], name) : ("" + parameter[ name ]) : token );
                 });
             },
 
@@ -1191,6 +1201,51 @@
                 /// <value type='Number'>获取当前系统的时间戳。</value>
 
                 return ( (new Date).getTime() );
+            },
+
+
+            foundISOTimeString: function foundISOTimeString( date ) {
+                /// <summary>获取日期对象的 ISO 格式的字符串。</summary>
+                /// <param name='date' type='Date' optional='true'>可选，默认值：当前时间。要获取 ISO 格式的字符串的日期对象。</param>
+                /// <returns type='String'>返回一个 String 值。</returns>
+
+                if ( (Fxlib.isInvaildObject( date )) ) {
+                    date = ( new Date );
+                };
+
+                if ( !(Fxlib.isReferenceObject( date )) ) {
+                    throw Error( "传递给 foundISOTimeString() 方法的 date 参数必须为引用类型。" );
+                };
+
+                /// "$(a)-$(b)-$(c)T$(d):$(e):$(f).$(g)Z"
+                var format = {
+                    a : ( "" + date.getFullYear() ),
+                    b : ( (date.getMonth  () < 10) ? ("0" + date.getMonth  ()) : ("" + date.getMonth  ()) ),
+                    c : ( (date.getDate   () < 10) ? ("0" + date.getDate   ()) : ("" + date.getDate   ()) ),
+                    d : ( (date.getHours  () < 10) ? ("0" + date.getHours  ()) : ("" + date.getHours  ()) ),
+                    e : ( (date.getMinutes() < 10) ? ("0" + date.getMinutes()) : ("" + date.getMinutes()) ),
+                    f : ( (date.getSeconds() < 10) ? ("0" + date.getSeconds()) : ("" + date.getSeconds()) ),
+                    g : ( (date.getMilliseconds() < 10) ? ("00" + date.getMilliseconds()) : (date.getMilliseconds() < 100) ? ("0" + date.getMilliseconds()) : ("" + date.getMilliseconds()) ),
+                };
+                
+                return Fxlib.utils.foundParameter( R_date_iso_string, format );
+            },
+
+
+            removeWhitespace: function removeWhitespace( data ) {
+                /// <summary>删除字符串中的前缀空白，以及后缀空白字符。</summary>
+                /// <param name='data' type='String'>必须，一个 String 值。</param>
+                /// <returns type='String'>返回删除空白后的新字符串。</returns>
+
+                if ( !(Fxlib.isString( data )) ) {
+                    throw Error( "传递给 removeWhitespace() 方法的 data 参数不是一个 String 对象。" );
+                };
+
+                if ( (Fxlib.isImpWithJsEngine( data.trim )) ) {
+                    return data.trim();
+                };
+
+                return data.replace( R_string_trim, "" );
             },
 
 
