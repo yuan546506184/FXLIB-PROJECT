@@ -45,6 +45,12 @@
 
     /// <var type='RegExp'>定义提取函数字符串形式中函数名称的正则表达式。</var>
     var R_function_name = /function\s+([^\(\s]+)/;
+
+    /// <var type='RegExp'>定义提取字符串中参数组的正则表达式。</var>
+    var R_string_parameter = /\$\(([^)]+)\)/g;
+
+    /// <var type='String'>定义匹配浏览器版本信息的正则表达式的模式字符串。</var>
+    var R_browser_version = "(vendor)(?:\\s|/)+(\\w+(?:\\.\\w+)*)";
         
 
     /// [ "Static" ]:
@@ -85,8 +91,8 @@
             return ( !((typeof data === "number") || (ToString.call( data ) === "[object Number]")) || (isNaN( data )) || !(isFinite( data )) );
         };
 
-        /*< inline >*/Fxlib.checkThisPointer = function checkThisPointer( thisPointer, ContrastClass ) {
-            if ( !(thisPointer instanceof ContrastClass) ) {
+        /*< inline >*/Fxlib.forkInspectPointer = function forkInspectPointer( pointer, constructor ) {
+            if ( !(pointer instanceof constructor) ) {
                 throw Error( "构造函数或绑定的对象方法禁止修改 this 指针。" );
             };
         };
@@ -297,15 +303,22 @@
         };
 
 
-        Fxlib.ClassObject = Fxlib.linkPrototype( function ClassObject () {
-            /// <summary>定义框架中类型的顶级继承类型。</summary>
-            
-            Fxlib.checkThisPointer( this, Fxlib.ClassObject );
+    /// [ "Core" ]:
+    /// ###########################################################################
+        var ClsasObject;
+        
+        Fxlib.namespace( "core", {
+            ClassObject:
+            ClassObject = Fxlib.linkPrototype( function ClassObject () {
+                /// <summary>定义框架中类型的顶级继承类型。</summary>
 
-        }, Object );
+                Fxlib.forkInspectPointer( this, ClassObject );
+
+            }, Object )
+        });
 
 
-        Fxlib.ClassObject.prototype.toString = function toString () {
+        ClassObject.prototype.toString = function toString () {
             /// <summary>获取对象的字符串形式。</summary>
             /// <returns type='String'>返回一个 String 对象。</returns>
 
@@ -343,7 +356,7 @@
                 /// <param name='bubbles' type='Boolean' optional='true'>可选，默认值：false。指示事件是否是一个冒泡事件。</param>
                 /// <param name='cancelable' type='Boolean' optional='true'>可选，默认值：false。指示事件是否可阻止对象执行默认行为。</param>
 
-                Fxlib.checkThisPointer( this, Event );
+                Fxlib.forkInspectPointer( this, Event );
 
                 this.type       = ( "" + type );
                 this.bubbles    = Boolean( bubbles || false );
@@ -357,7 +370,7 @@
                 /*< private >*/this._isStoppedPropagation = false;
                 /*< private >*/this._isStoppedImmediate   = false;
 
-            }, Fxlib.ClassObject ),
+            }, ClassObject ),
 
 
             Listener:
@@ -368,7 +381,7 @@
                 /// <param name='useCapture' type='Boolean' optional='true'>可选，默认值：false。指示该侦听器是否事件捕获阶段处理事件。</param>
                 /// <param name='priority' type='Number' optional='true'>可选，默认值：false。设置事件侦听器的优先级。</param>
 
-                Fxlib.checkThisPointer( this, Listener );
+                Fxlib.forkInspectPointer( this, Listener );
 
                 if ( !(typeof handler === "function") ) {
                     throw Error( "传递给 Listener 构造函数的 handler 参数不是一个 Function 对象。" );
@@ -379,7 +392,7 @@
                 this.useCapture = Boolean( useCapture || false );
                 this.priority   = Fxlib.isInvaildNumber( priority ) ? 0 : priority;
 
-            }, Fxlib.ClassObject ),
+            }, ClassObject ),
 
 
             Dispatcher:
@@ -387,7 +400,7 @@
                 /// <summary>创建一个事件调度器对象， Dispatcher 类型是框架具备事件调度能力类型的基类。</summary>
                 /// <param name='target' type='Object' optional='true'>可选，默认值：null。设置事件调度目标对象。</param>
 
-                Fxlib.checkThisPointer( this, Dispatcher );
+                Fxlib.forkInspectPointer( this, Dispatcher );
 
                 /*< private >*/this.target = ( target || this );
                 /*< private >*/this.tplist = {};
@@ -396,7 +409,7 @@
                     throw Error( "传递给 Dispatcher 构造函数的 target 参数必须为引用类型。" );
                 };
 
-            }, Fxlib.ClassObject ),
+            }, ClassObject ),
 
 
             MouseEvent:
@@ -406,7 +419,7 @@
                 /// <param name='bubbles' type='Boolean' optional='true'>可选，默认值：false。指示事件是否是一个冒泡事件。</param>
                 /// <param name='cancelable' type='Boolean' optional='true'>可选，默认值：false。指示事件是否可阻止对象执行默认行为。</param>
 
-                Fxlib.checkThisPointer( this, MouseEvent );
+                Fxlib.forkInspectPointer( this, MouseEvent );
                 Event.call( this, type, bubbles, cancelable );
 
             }, Event ),
@@ -419,7 +432,7 @@
                 /// <param name='bubbles' type='Boolean' optional='true'>可选，默认值：false。指示事件是否是一个冒泡事件。</param>
                 /// <param name='cancelable' type='Boolean' optional='true'>可选，默认值：false。指示事件是否可阻止对象执行默认行为。</param>
 
-                Fxlib.checkThisPointer( this, FocusEvent );
+                Fxlib.forkInspectPointer( this, FocusEvent );
                 Event.call( this, type, bubbles, cancelable );
 
             }, Event ),
@@ -432,7 +445,7 @@
                 /// <param name='bubbles' type='Boolean' optional='true'>可选，默认值：false。指示事件是否是一个冒泡事件。</param>
                 /// <param name='cancelable' type='Boolean' optional='true'>可选，默认值：false。指示事件是否可阻止对象执行默认行为。</param>
 
-                Fxlib.checkThisPointer( this, KeyboardEvent );
+                Fxlib.forkInspectPointer( this, KeyboardEvent );
                 Event.call( this, type, bubbles, cancelable );
 
             }, Event ),
@@ -445,7 +458,7 @@
                 /// <param name='bubbles' type='Boolean' optional='true'>可选，默认值：false。指示事件是否是一个冒泡事件。</param>
                 /// <param name='cancelable' type='Boolean' optional='true'>可选，默认值：false。指示事件是否可阻止对象执行默认行为。</param>
 
-                Fxlib.checkThisPointer( this, TouchEvent );
+                Fxlib.forkInspectPointer( this, TouchEvent );
                 Event.call( this, type, bubbles, cancelable );
 
             }, Event ),
@@ -460,11 +473,11 @@
                     throw Error( "传递给 HTMLDispatcher 构造函数的 target 参数不能为空。" );
                 };
 
-                Fxlib.checkThisPointer( this, HTMLDispatcher );
+                Fxlib.forkInspectPointer( this, HTMLDispatcher );
                 Dispatcher.call( this, target );
                 
-                this.tpbind = {};
-                this.handleHtmlEvent = Fxlib.builtProxy( this.handleHtmlEvent, this );
+                /*< private >*/this.tpbind = {};
+                /*< private >*/this.handleHtmlEvent = Fxlib.builtProxy( this.handleHtmlEvent, this );
 
             }, Dispatcher ),
 
@@ -478,7 +491,7 @@
                     throw Error( "传递给 HTMLEvent 构造函数的 domEvent 参数必须为引用类型。" );
                 };
 
-                Fxlib.checkThisPointer( this, HTMLEvent );
+                Fxlib.forkInspectPointer( this, HTMLEvent );
                 Event.call( this, domEvent.type, domEvent.bubbles, domEvent.cancelable );
 
                 this.domEvent = domEvent;
@@ -509,7 +522,7 @@
             /// <param name='bubbles' type='Boolean' optional='true'>可选，默认值：false。指示事件是否是一个冒泡事件。</param>
             /// <param name='cancelable' type='Boolean' optional='true'>可选，默认值：false。指示事件是否可阻止对象执行默认行为。</param>
 
-            Fxlib.checkThisPointer( this, Event );
+            Fxlib.forkInspectPointer( this, Event );
             
             this.type       = ( "" + type );
             this.bubbles    = Boolean( bubbles || false );
@@ -520,7 +533,7 @@
         Event.prototype.stopPropagation = function stopPropagation () {
             /// <summary>停止事件传递，使得事件流中的下一个节点不再处理该事件对象。</summary>
 
-            Fxlib.checkThisPointer( this, Event );
+            Fxlib.forkInspectPointer( this, Event );
 
             this._isStoppedPropagation = true;
         };
@@ -529,7 +542,7 @@
         Event.prototype.stopImmediatePropagation = function stopImmediatePropagation () {
             /// <summary>立刻停止事件传递，使得事件流中的下一个节点以及当前节点的后续侦听器都不再处理该事件。</summary>
 
-            Fxlib.checkThisPointer( this, Event );
+            Fxlib.forkInspectPointer( this, Event );
 
             this._isStoppedPropagation = true;
             this._isStoppedImmediate = true;
@@ -539,7 +552,7 @@
         Event.prototype.preventDefault = function preventDefault () {
             /// <summary>阻止事件调度对象处理默认行为。</summary>
 
-            Fxlib.checkThisPointer( this, Event );
+            Fxlib.forkInspectPointer( this, Event );
 
             this._isPreventDefault = !!this.cancelable;
         };
@@ -549,7 +562,7 @@
             /// <summary>查看当前事件对象是否取消了默认行为。</summary>
             /// <returns type='Boolean'>返回一个 Boolean 值。</returns>
 
-            Fxlib.checkThisPointer( this, Event );
+            Fxlib.forkInspectPointer( this, Event );
 
             return this._isPreventDefault;
         };
@@ -588,6 +601,7 @@
         HTMLEvent.prototype.stopPropagation = function stopPropagation () {
             /// <summary>停止事件传递，使得事件流中的下一个节点不再处理该事件对象。</summary>
 
+            Fxlib.forkInspectPointer( this, HTMLEvent );
             Event.prototype.stopPropagation.call( this );
 
             if ( (Fxlib.isImpWithJsEngine( this.domEvent.stopPropagation )) ) {
@@ -603,6 +617,7 @@
         HTMLEvent.prototype.stopImmediatePropagation = function stopImmediatePropagation () {
             /// <summary>立刻停止事件传递，使得事件流中的下一个节点以及当前节点的后续侦听器都不再处理该事件。</summary>
 
+            Fxlib.forkInspectPointer( this, HTMLEvent );
             Event.prototype.stopImmediatePropagation.call( this );
 
             if ( (Fxlib.isImpWithJsEngine( this.domEvent.stopImmediatePropagation )) ) {
@@ -618,6 +633,7 @@
         HTMLEvent.prototype.preventDefault = function preventDefault () {
             /// <summary>阻止事件调度对象处理默认行为。</summary>
 
+            Fxlib.forkInspectPointer( this, HTMLEvent );
             Event.prototype.preventDefault.call( this );
 
             if ( (Fxlib.isImpWithJsEngine( this.domEvent.preventDefault )) ) {
@@ -653,7 +669,7 @@
             /// <param name='context' type='Object' optional='true'>可选，默认使用当前调度器，设置侦听器事件处理函数的执行上下文。</param>
             /// <param name='priority' type='Number' optional='true'>可选，默认值：0。设置事件侦听器的优先级。</param>
 
-            Fxlib.checkThisPointer( this, Dispatcher );
+            Fxlib.forkInspectPointer( this, Dispatcher );
 
             if ( (typeof listener === "function") ) {
                 listener = new Listener( listener );
@@ -701,7 +717,7 @@
             /// <param name='listener' type='Listener'>必须，要删除的事件侦听器对象或者一个函数对象。</param>
             /// <param name='useCapture' type='Boolean' optional='true'>可选，默认值：false。指示是否是删除捕获阶段的侦听器(true)。</param>
             
-            Fxlib.checkThisPointer( this, Dispatcher );
+            Fxlib.forkInspectPointer( this, Dispatcher );
 
             var type = "" + type;
 
@@ -740,7 +756,7 @@
             /// <param name='evt' type='String'>必须，要调度的事件对象或者一个指示事件类型的字符串。</param>
             /// <returns type='Boolean'>如果事件传递经过当前调度器，并且当前调度器执行了默认的行为，则返回 true。否则返回 false。</returns>
 
-            Fxlib.checkThisPointer( this, Dispatcher );
+            Fxlib.forkInspectPointer( this, Dispatcher );
 
             if ( (Fxlib.isString( evt )) ) {
                 evt = new Event( evt, false, false );
@@ -769,7 +785,7 @@
             ( evt.currentTarget = this.target );
             ( this.dispatchEventFunction(evt) );
 
-            if ( !(evt.isPropagation()) ) {
+            if ( !(evt.isPropagation()) || !(evt.bubbles) ) {
                 return ( !(evt.defaultPrevented()) );
             };
 
@@ -788,7 +804,7 @@
             /// <summary>查看当前调度器的事件侦听器列表中是否为指定类型的事件，注册了事件侦听器。</summary>
             /// <returns type='Boolean'>如果存在处理该类型事件的事件侦听器，则返回 true。否则返回 false。</returns>
 
-            Fxlib.checkThisPointer( this, Dispatcher );
+            Fxlib.forkInspectPointer( this, Dispatcher );
 
             var type = "" + type;
 
@@ -800,7 +816,7 @@
             /// <summary>查看当前调度器以及事件流中任何始主调度器的事件侦听器列表中是否为指定类型的事件，注册了事件侦听器。</summary>
             /// <returns type='Boolean'>如果存在处理该类型事件的事件侦听器，则返回 true。否则返回 false。</returns>
 
-            Fxlib.checkThisPointer( this, Dispatcher );
+            Fxlib.forkInspectPointer( this, Dispatcher );
 
             var streamPropagation = this.builtPropagation();
             var dispatcher;
@@ -952,123 +968,218 @@
         };
 
 
-        Event.NONE            = 0;
-        Event.CAPTURING_PHASE = 1;
-        Event.AT_TARGET       = 2;
-        Event.BUBBLING_PHASE  = 3;
+        /*< static >*/Event.NONE            = 0;
+        /*< static >*/Event.CAPTURING_PHASE = 1;
+        /*< static >*/Event.AT_TARGET       = 2;
+        /*< static >*/Event.BUBBLING_PHASE  = 3;
 
-        FocusEvent.BLUR          = "blur";
-        FocusEvent.DOM_FOCUS_IN  = "DOMFocusIn";
-        FocusEvent.DOM_FOCUS_OUT = "DOMFocusOut";
-        FocusEvent.FOCUS         = "focus";
-        FocusEvent.FOCUS_IN      = "focusin";
-        FocusEvent.FOCUS_OUT     = "focusout";
+        /*< static >*/FocusEvent.BLUR          = "blur";
+        /*< static >*/FocusEvent.DOM_FOCUS_IN  = "DOMFocusIn";
+        /*< static >*/FocusEvent.DOM_FOCUS_OUT = "DOMFocusOut";
+        /*< static >*/FocusEvent.FOCUS         = "focus";
+        /*< static >*/FocusEvent.FOCUS_IN      = "focusin";
+        /*< static >*/FocusEvent.FOCUS_OUT     = "focusout";
 
-        MouseEvent.CLICK         = "click";
-        MouseEvent.DBL_CLICK     = "dblclick";
-        MouseEvent.MOUSE_DOWN    = "mousedown";
-        MouseEvent.MOUSE_ENTER   = "mouseenter";
-        MouseEvent.MOUSE_LEAVE   = "mouseleave";
-        MouseEvent.MOUSE_MOVE    = "mousemove";
-        MouseEvent.MOUSE_OUT     = "mouseout";
-        MouseEvent.MOUSE_OVER    = "mouseover";
-        MouseEvent.MOUSE_UP      = "mouseup";
-        MouseEvent.MOUSE_WHEEL   = "mousewheel";
+        /*< static >*/MouseEvent.CLICK         = "click";
+        /*< static >*/MouseEvent.DBL_CLICK     = "dblclick";
+        /*< static >*/MouseEvent.MOUSE_DOWN    = "mousedown";
+        /*< static >*/MouseEvent.MOUSE_ENTER   = "mouseenter";
+        /*< static >*/MouseEvent.MOUSE_LEAVE   = "mouseleave";
+        /*< static >*/MouseEvent.MOUSE_MOVE    = "mousemove";
+        /*< static >*/MouseEvent.MOUSE_OUT     = "mouseout";
+        /*< static >*/MouseEvent.MOUSE_OVER    = "mouseover";
+        /*< static >*/MouseEvent.MOUSE_UP      = "mouseup";
+        /*< static >*/MouseEvent.MOUSE_WHEEL   = "mousewheel";
 
-        KeyboardEvent.KEY_DOWN   = "keydown";
-        KeyboardEvent.KEY_PRESS  = "keypress";
-        KeyboardEvent.KEY_UP     = "keyup";
+        /*< static >*/KeyboardEvent.KEY_DOWN   = "keydown";
+        /*< static >*/KeyboardEvent.KEY_PRESS  = "keypress";
+        /*< static >*/KeyboardEvent.KEY_UP     = "keyup";
 
-        TouchEvent.TOUCH_START   = "touchstart";
-        TouchEvent.TOUCH_END     = "touchend";
-        TouchEvent.TOUCH_MOVE    = "touchmove";
-        TouchEvent.TOUCH_ENTER   = "touchenter";
-        TouchEvent.TOUCH_LEAVE   = "touchlevae";
-        TouchEvent.TOUCH_CANCEL  = "touchcancel";
-        TouchEvent.MS_POINTER_CANCEL  = "mspointercancel";
-        TouchEvent.MS_POINTER_DOWN    = "mspointerdown";
-        TouchEvent.MS_POINTER_HOVER   = "mspointerhover";
-        TouchEvent.MS_POINTER_MOVE    = "mspointermove";
-        TouchEvent.MS_POINTER_OUT     = "mspointerout";
-        TouchEvent.MS_POINTER_OVER    = "mspointerover";
-        TouchEvent.MS_POINTER_UP      = "mspointerup";
-        TouchEvent.INTERFACE          = {};
+        /*< static >*/TouchEvent.TOUCH_START   = "touchstart";
+        /*< static >*/TouchEvent.TOUCH_END     = "touchend";
+        /*< static >*/TouchEvent.TOUCH_MOVE    = "touchmove";
+        /*< static >*/TouchEvent.TOUCH_ENTER   = "touchenter";
+        /*< static >*/TouchEvent.TOUCH_LEAVE   = "touchlevae";
+        /*< static >*/TouchEvent.TOUCH_CANCEL  = "touchcancel";
+        /*< static >*/TouchEvent.MS_POINTER_CANCEL  = "mspointercancel";
+        /*< static >*/TouchEvent.MS_POINTER_DOWN    = "mspointerdown";
+        /*< static >*/TouchEvent.MS_POINTER_HOVER   = "mspointerhover";
+        /*< static >*/TouchEvent.MS_POINTER_MOVE    = "mspointermove";
+        /*< static >*/TouchEvent.MS_POINTER_OUT     = "mspointerout";
+        /*< static >*/TouchEvent.MS_POINTER_OVER    = "mspointerover";
+        /*< static >*/TouchEvent.MS_POINTER_UP      = "mspointerup";
+        /*< static >*/TouchEvent.INTERFACE          = {};
 
-        Event.ABORT              = "abort";
-        Event.ACTIVATE           = "activate";
-        Event.AFTER_PRINT        = "afterprint";
-        Event.AFTER_UPDATE       = "afterupdate";
-        Event.BEFORE_ACTIVATE    = "beforeactivate";
-        Event.BEFORE_COPY        = "beforecopy";
-        Event.BEFORE_CUT         = "beforecut";
-        Event.BEFORE_DEACTIVATE  = "beforedeactivate";
-        Event.BEFORE_EDIT_FOCUS  = "beforeeditfocus";
-        Event.BEFORE_PASTE       = "beforepaste";
-        Event.BEFORE_PRINT       = "beforeprint";
-        Event.BEFORE_UNLOAD      = "beforeunload";
-        Event.BOUNCE             = "bounce";
-        Event.CELL_CHANGE        = "cellchange";
-        Event.CHANGE             = "change";
-        Event.COMPLETE           = "complete";
-        Event.CONTEXT_MENU       = "contextmenu";
-        Event.CONTROL_SELECT     = "controlselect";
-        Event.COPY               = "copy";
-        Event.CUT                = "cut";
-        Event.DATA_AVAILABLE     = "dataavailable";
-        Event.DATA_SET_CHANGED   = "datasetchanged";
-        Event.DATA_SET_COMPLETE  = "datasetcomplete";
-        Event.DEACTIVATE         = "deactivate";
-        Event.DRAG               = "drag";
-        Event.DRAG_END           = "dragend";
-        Event.DRAG_ENTER         = "dragenter";
-        Event.DRAG_LEAVE         = "dragleave";
-        Event.DRAG_OVER          = "dragover";
-        Event.DRAG_START         = "dragstart";
-        Event.DROP               = "drop";
-        Event.ERROR              = "error";
-        Event.ERROR_UPDATE       = "errorupdate";
-        Event.FILTER_CHANGE      = "filterchange";
-        Event.FINISH             = "finish";
-        Event.HASH_CHANGE        = "hashchange";
-        Event.HELP               = "help";
-        Event.INPUT              = "input";
-        Event.INTER_ACTIVE       = "interactive";
-        Event.LAYOUT_COMPLETE    = "layoutcomplete";
-        Event.LOAD               = "load";
-        Event.LOSE_CAPTURE       = "losecapture";
-        Event.MESSAGE            = "message";
-        Event.MOVE               = "move";
-        Event.MOVE_END           = "moveend";
-        Event.MOVE_START         = "movestart";
-        Event.OFF_LINE           = "offline";
-        Event.ON_LINE            = "online";
-        Event.PAGE               = "page";
-        Event.PASTE              = "paste";
-        Event.POP_STATE          = "popstate";
-        Event.PROPERTY_CHANGE    = "propertychange";
-        Event.READY_STATE_CHANGE = "readystatechange";
-        Event.RESET              = "reset";
-        Event.RESIZE             = "resize";
-        Event.RESIZE_END         = "resizeend";
-        Event.RESIZE_START       = "resizestart";
-        Event.ROW_ENTER          = "rowenter";
-        Event.ROW_EXIT           = "rowexit";
-        Event.ROWS_DELETE        = "rowsdelete";
-        Event.ROWS_INSERTED      = "rowsinserted";
-        Event.SCROLL             = "scroll";
-        Event.SELECT             = "select";
-        Event.SELECTION_CHANGE   = "selectionchange";
-        Event.SELECT_START       = "selectstart";
-        Event.START              = "start";
-        Event.STOP               = "stop";
-        Event.STORAGE            = "storage";
-        Event.STORAGE_COMMIT     = "storagecommit";
-        Event.SUBMIT             = "submit";
-        Event.UNLOAD             = "unload";
-        Event.INTERFACE = {
+        /*< static >*/Event.ABORT              = "abort";
+        /*< static >*/Event.ACTIVATE           = "activate";
+        /*< static >*/Event.AFTER_PRINT        = "afterprint";
+        /*< static >*/Event.AFTER_UPDATE       = "afterupdate";
+        /*< static >*/Event.BEFORE_ACTIVATE    = "beforeactivate";
+        /*< static >*/Event.BEFORE_COPY        = "beforecopy";
+        /*< static >*/Event.BEFORE_CUT         = "beforecut";
+        /*< static >*/Event.BEFORE_DEACTIVATE  = "beforedeactivate";
+        /*< static >*/Event.BEFORE_EDIT_FOCUS  = "beforeeditfocus";
+        /*< static >*/Event.BEFORE_PASTE       = "beforepaste";
+        /*< static >*/Event.BEFORE_PRINT       = "beforeprint";
+        /*< static >*/Event.BEFORE_UNLOAD      = "beforeunload";
+        /*< static >*/Event.BOUNCE             = "bounce";
+        /*< static >*/Event.CELL_CHANGE        = "cellchange";
+        /*< static >*/Event.CHANGE             = "change";
+        /*< static >*/Event.COMPLETE           = "complete";
+        /*< static >*/Event.CONTEXT_MENU       = "contextmenu";
+        /*< static >*/Event.CONTROL_SELECT     = "controlselect";
+        /*< static >*/Event.COPY               = "copy";
+        /*< static >*/Event.CUT                = "cut";
+        /*< static >*/Event.DATA_AVAILABLE     = "dataavailable";
+        /*< static >*/Event.DATA_SET_CHANGED   = "datasetchanged";
+        /*< static >*/Event.DATA_SET_COMPLETE  = "datasetcomplete";
+        /*< static >*/Event.DEACTIVATE         = "deactivate";
+        /*< static >*/Event.DRAG               = "drag";
+        /*< static >*/Event.DRAG_END           = "dragend";
+        /*< static >*/Event.DRAG_ENTER         = "dragenter";
+        /*< static >*/Event.DRAG_LEAVE         = "dragleave";
+        /*< static >*/Event.DRAG_OVER          = "dragover";
+        /*< static >*/Event.DRAG_START         = "dragstart";
+        /*< static >*/Event.DROP               = "drop";
+        /*< static >*/Event.ERROR              = "error";
+        /*< static >*/Event.ERROR_UPDATE       = "errorupdate";
+        /*< static >*/Event.FILTER_CHANGE      = "filterchange";
+        /*< static >*/Event.FINISH             = "finish";
+        /*< static >*/Event.HASH_CHANGE        = "hashchange";
+        /*< static >*/Event.HELP               = "help";
+        /*< static >*/Event.INPUT              = "input";
+        /*< static >*/Event.INTER_ACTIVE       = "interactive";
+        /*< static >*/Event.LAYOUT_COMPLETE    = "layoutcomplete";
+        /*< static >*/Event.LOAD               = "load";
+        /*< static >*/Event.LOSE_CAPTURE       = "losecapture";
+        /*< static >*/Event.MESSAGE            = "message";
+        /*< static >*/Event.MOVE               = "move";
+        /*< static >*/Event.MOVE_END           = "moveend";
+        /*< static >*/Event.MOVE_START         = "movestart";
+        /*< static >*/Event.OFF_LINE           = "offline";
+        /*< static >*/Event.ON_LINE            = "online";
+        /*< static >*/Event.PAGE               = "page";
+        /*< static >*/Event.PASTE              = "paste";
+        /*< static >*/Event.POP_STATE          = "popstate";
+        /*< static >*/Event.PROPERTY_CHANGE    = "propertychange";
+        /*< static >*/Event.READY_STATE_CHANGE = "readystatechange";
+        /*< static >*/Event.RESET              = "reset";
+        /*< static >*/Event.RESIZE             = "resize";
+        /*< static >*/Event.RESIZE_END         = "resizeend";
+        /*< static >*/Event.RESIZE_START       = "resizestart";
+        /*< static >*/Event.ROW_ENTER          = "rowenter";
+        /*< static >*/Event.ROW_EXIT           = "rowexit";
+        /*< static >*/Event.ROWS_DELETE        = "rowsdelete";
+        /*< static >*/Event.ROWS_INSERTED      = "rowsinserted";
+        /*< static >*/Event.SCROLL             = "scroll";
+        /*< static >*/Event.SELECT             = "select";
+        /*< static >*/Event.SELECTION_CHANGE   = "selectionchange";
+        /*< static >*/Event.SELECT_START       = "selectstart";
+        /*< static >*/Event.START              = "start";
+        /*< static >*/Event.STOP               = "stop";
+        /*< static >*/Event.STORAGE            = "storage";
+        /*< static >*/Event.STORAGE_COMMIT     = "storagecommit";
+        /*< static >*/Event.SUBMIT             = "submit";
+        /*< static >*/Event.UNLOAD             = "unload";
+        /*< static >*/Event.INTERFACE = {
             /// <summary>定义 DOM 准备完成事件常量。</summary>
             LOADED: ( (Fxlib.isImpWithJsEngine( window.addEventListener )) ? "DOMContentLoaded" : "readystatechange" )
         };
+
+
+    /// [ "Utils" ]:
+    /// ###########################################################################
+        Fxlib.namespace( "utils", {
+            /*< reference >*/foundClassName: Fxlib.foundClassName,
+            /*< reference >*/foundPrototype: Fxlib.foundPrototype,
+            /*< reference >*/builtPrototype: Fxlib.builtPrototype,
+            /*< reference >*/builtProxy    : Fxlib.builtProxy,
+
+            /// <field type='Array' elementType='String'>定义供应商 CSS 属性键前缀。</field>
+            CVSPrefix: [ "-ms-", "-moz-", "-webkit-", "-o-" ],
+
+            /// <field type='Array' elementType='String'>定义供应商 JS 属性前缀。</field>
+            JVSPrefix: [  "ms" ,  "moz" ,  "webkit" ,  "o"  ],
+
+
+            foundParameter: function foundParameter( string, parameter, handler ) {
+                /// <summary>查找字符串中的参数组，并使用指定对象的属性值替换该参数组。</summary>
+                /// <param name='string' type='String'>必须，要查找参数组的字符串。</param>
+                /// <param name='parameter' type='Object'>必须，替换结果属性值对象。</param>
+                /// <param name='handler' type='Function' optional='true'>可选，默认值：转换字符串函数。指定替换参数组时，过滤结果的函数。</param>
+
+                if ( !(Fxlib.isString( string )) ) {
+                    throw Error( "传递给 foundParameter() 方法的 string 参数不是一个 String 对象。" );
+                };
+
+                if ( !(Fxlib.isReferenceObject( parameter )) ) {
+                    throw Error( "传递给 foundParameter() 方法的 parameter 参数必须为引用类型。" );
+                };
+
+                return string.replace( R_string_parameter, function( token, name ) {
+                    return ( (name in parameter) ? (typeof handler === "function") ? handler(parameter[ name ]) : ("" + parameter[ name ]) : token );
+                });
+            },
+
+
+            foundBrowser: function foundBrowser( vendor ) {
+                /// <summary>获取浏览器版本信息。</summary>
+                /// <param name='vendor' type='String'>必须，浏览器的供应商名称。</param>
+                /// <returns type='Array'>返回版本信息数组，如果没有匹配，则返回 null。</returns>
+
+                if ( !(Fxlib.isString( vendor )) ) {
+                    throw Error( "传递给 foundBrowser() 方法的 vendor 参数不是一个 String 对象。" );
+                };
+
+                return ( new RegExp(R_browser_version.replace("vendor", vendor), "i") ).exec( navigator.userAgent );
+            },
+
+
+            foundExtDefinition: function foundExtDefinition( target ) {
+                /// <signature>
+                /// <summary>获取 HTML 对象由供应商提供的扩展属性。</summary>
+                /// <param name='target' type='Object'>必须，一个 HTML 对象。</param>
+                /// <param name='...list' optional='true'>可选，默认值：无。提供一个可能的名称列表。</param>
+                /// <returns type='Object'>如果在可能属性列表中的某个键存在于目标对象上，则返回该键的键值。否则返回 null。</returns>
+                /// </signature>
+
+                if ( !(Fxlib.isReferenceObject( target )) ) {
+                    throw Error( "传递给 foundExtDefinition() 方法的 target 参数必须为引用类型。" );
+                };
+
+                for ( var i = 1, name = null; i < arguments.length; ++i ) {
+                    name = ( "" + arguments[ i ] );
+
+                    if ( (name in target) ) {
+                        return target[ name ];
+                    };
+
+                    var suffix = ( name.charAt(0).toUpperCase() + name.slice(1) );
+                    var prefix = Fxlib.utils.JVSPrefix;
+
+                    for ( var j = 0, keyname = null; j < prefix.length; ++j ) {
+                        keyname = ( prefix[ i ] + suffix );
+
+                        if ( (keyname in target) ) {
+                            return target[ keyname ];
+                        };
+                    };
+
+                    var suffix = name;
+                    var prefix = Fxlib.utils.CVSPrefix;
+
+                    for ( var j = 0, keyname = null; j < prefix.length; ++j ) {
+                        keyname = ( prefix[ i ] + suffix );
+
+                        if ( (keyname in target) ) {
+                            return target[ keyname ];
+                        };
+                    };
+                };
+
+                return null;
+            }
+        });
 
   
 /// ###########################################################################
