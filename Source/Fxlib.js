@@ -1089,6 +1089,10 @@
 
     /// [ "Utils" ]:
     /// ###########################################################################
+        var ByteArray;
+        var Color;
+
+
         Fxlib.namespace( "utils", {
             /*< reference >*/foundClassName: Fxlib.foundClassName,
             /*< reference >*/foundPrototype: Fxlib.foundPrototype,
@@ -1178,8 +1182,129 @@
                 };
 
                 return null;
-            }
+            },
+
+
+            ByteArray:
+            ByteArray = Fxlib.linkPrototype( function ByteArray( length ) {
+                /// <signature>
+                /// <summary>创建固定长度的二进制数组。</summary>
+                /// <param name='length' type='Number'>必须，字节数组的长度。</param>
+                /// </signature>
+                /// <signature>
+                /// <summary>将数组转换成一个二进制数组。(可能引用原始数组)。</summary>
+                /// <param name='array' type='Array' elementType='Number'>必须，保存字节数据的数组。</param>
+                /// </signature>
+                /// <signature>
+                /// <summary>使用 ArrayBuffer 对象创建一个二进制数组。(引用原始数组)。</summary>
+                /// <param name='buffer' type='ArrayBuffer'>必须，保存字节数据的 ArrayBuffer 对象。</param>
+                /// </signature>
+
+                /*< default >*/this.byteLength   = 0;
+                /*< default >*/this.bytePosition = 0;
+                /*< default >*/this.byteProvider = null;
+                /*< default >*/this.byteOperater = null;
+
+                /// Array 对象：
+                if ( (Fxlib.isArray( length )) ) {
+                    this.byteLength   = ( length.length );
+                    this.byteProvider = ( (typeof ArrayBuffer === "undefined") ? length : new ArrayBuffer(this.byteLength) );
+                    this.byteOperater = ( (typeof ArrayBuffer === "undefined") ? null   : new DataView(this.byteProvider, 0, this.byteLength) );
+
+                    if ( !(typeof ArrayBuffer === "undefined") ) {
+                        for ( var i = 0; i < this.byteLength; ++i ) {
+                            this.byteOperater.setUint8( length[ i ] );
+                        };
+                    };
+
+                    this.bytePosition = 0;
+                    return;
+                };
+
+                /// ArrayBuffer 对象：
+                if ( !(typeof ArrayBuffer === "undefined") && (length instanceof ArrayBuffer) ) {
+                    this.byteLength   = length.byteLength;
+                    this.byteProvider = length;
+                    this.byteOperater = new DataView( this.byteProvider, 0, this.byteLength );
+                    return;
+                };
+
+                /// Number 对象：
+                if ( !(Fxlib.isInvaildNumber( length )) ) {
+                    this.byteLength   = ( length );
+                    this.byteProvider = ( (typeof ArrayBuffer === "undefined") ? new Array(this.byteLength) : new ArrayBuffer(this.byteLength) );
+                    this.byteOperater = ( (typeof ArrayBuffer === "undefined") ? null : new DataView(this.byteProvider, 0, this.byteLength) );
+                    return;
+                };
+
+                throw Error( "传递给 ByteArray 构造函数的 length 参数无效。" );
+
+            }, ClsasObject ),
+
+
+            Color:
+            Color = Fxlib.linkPrototype( function Color( R, G, B, A ) {
+                /// <summary>创建一个颜色对象。</summary>
+
+
+            }, ClassObject ),
+
+
+            URI:
+            URI = Fxlib.linkPrototype( function URI( path ) {
+                /// <summary>创建一个 URI 对象。</summary>
+
+            }, ClassObject )
+
         });
+
+        /// ByteArray 对象的方法都不提供范围以及指针检查。
+        /// 支持 ArrayBuffer 对象：
+        if ( !(typeof ArrayBuffer === "undefined") ) {
+
+            ByteArray.prototype.getUint8 = function getUint8 () {
+                /// <summary>从字节数组的当前位置读取一个 8 位无符号整数。</summary>
+                /// <returns tyep='Number'>返回一个数值。</returns>
+
+                return ( this.byteProvider[ this.bytePosition ] || 0 );
+            };
+
+
+            ByteArray.prototype.setUint8 = function setUint8( value ) {
+                /// <summary>从字节数组的当前位置写入一个 8 位无符号整数。</summary>
+                /// <param name='value' type='Number'>必须，写入的数值。</param>
+
+                this.byteProvider[ this.bytePosition ] = value;
+            };
+
+        }
+
+        else {
+
+            ByteArray.prototype.getUint8 = function getUint8 () {
+                /// <summary>从字节数组的当前位置读取一个 8 位无符号整数。</summary>
+                /// <returns tyep='Number'>返回一个数值。</returns>
+
+                return this.byteOperater.getUint8( this.bytePosition );
+            };
+
+
+            ByteArray.prototype.setUint8 = function setUint8( value ) {
+                /// <summary>从字节数组的当前位置写入一个 8 位无符号整数。</summary>
+                /// <param name='value' type='Number'>必须，写入的数值。</param>
+
+                this.byteOperater.setUint8( value, this.bytePosition );
+            };
+
+        };
+
+
+        ByteArray.prototype.byteAvailable = function byteAvailable () {
+            /// <value type='Number'>获取字节数组中可用的字节数。</value>
+
+            return Math.max( 0, this.byteLength - this.bytePosition );
+        };
+
 
   
 /// ###########################################################################
